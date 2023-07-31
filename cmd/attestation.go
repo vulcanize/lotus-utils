@@ -3,6 +3,7 @@ package cmd
 import (
 	"context"
 	"fmt"
+	"github.com/spf13/viper"
 	"net"
 	"net/http"
 	"net/rpc"
@@ -13,14 +14,14 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 
-	"github.com/vulcanize/lotus-index-attestation/pkg/attestation"
+	"github.com/vulcanize/lotus-utils/pkg/attestation"
 )
 
 // attestationCmd represents the attestation command
 var attestationCmd = &cobra.Command{
 	Use:   "attestation",
 	Short: "generate msgindex.db checksums and/or expose API for querying persisted checksums",
-	Long:  `This command configures a lotus-index-attestation service`,
+	Long:  `This command configures a lotus-utils service`,
 	Run: func(cmd *cobra.Command, args []string) {
 		subCommand = cmd.CalledAs()
 		logWithCommand = *log.WithField("SubCommand", subCommand)
@@ -85,4 +86,18 @@ func attestationService() {
 
 func init() {
 	rootCmd.AddCommand(attestationCmd)
+
+	attestationCmd.PersistentFlags().String("checksum-db-directory", "", "path for directory that contains a checksums.db")
+	attestationCmd.PersistentFlags().Uint("checksum-chunk-size", 2880, "epoch range size for caluclating checksums over")
+	attestationCmd.PersistentFlags().Bool("checksum-on", true, "turn checksumming on")
+
+	attestationCmd.PersistentFlags().Bool("server-on", false, "turn on the http rpc server")
+	attestationCmd.PersistentFlags().String("server-port", "8087", "port http rpc server")
+
+	viper.BindPFlag(attestation.CHECKSUM_DB_DIRECTORY_TOML, attestationCmd.PersistentFlags().Lookup("checksum-db-directory"))
+	viper.BindPFlag(attestation.CHECKSUM_CHUNK_SIZE_TOML, attestationCmd.PersistentFlags().Lookup("checksum-chunk-size"))
+	viper.BindPFlag(attestation.SUPPORTS_CHECKSUMMING_TOML, attestationCmd.PersistentFlags().Lookup("checksum-on"))
+
+	viper.BindPFlag(attestation.SERVER_PORT_TOML, attestationCmd.PersistentFlags().Lookup("server-port"))
+	viper.BindPFlag(attestation.SUPPORTS_SERVER_TOML, attestationCmd.PersistentFlags().Lookup("server-on"))
 }
