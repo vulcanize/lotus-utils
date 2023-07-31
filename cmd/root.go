@@ -17,7 +17,10 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/vulcanize/lotus-utils/pkg/attestation"
 	"os"
+	"runtime"
+	"strings"
 
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -26,43 +29,75 @@ import (
 
 var (
 	cfgFile        string
+	envFile        string
 	subCommand     string
 	logWithCommand log.Entry
 )
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
-	Use:   "lotus-utils",
-	Short: "A brief description of your application",
-	Long: `A longer description that spans multiple lines and likely contains
-examples and usage of using your application. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
-	// Uncomment the following line if your bare application
-	// has an action associated with it:
-	// Run: func(cmd *cobra.Command, args []string) { },
+	Use:              "lotus-utils",
+	PersistentPreRun: initFuncs,
 }
+
 
 // Execute adds all child commands to the root command and sets flags appropriately.
 // This is called by main.main(). It only needs to happen once to the rootCmd.
 func Execute() {
-	cobra.CheckErr(rootCmd.Execute())
+	log.Info("----- Starting Lotus Utils -----")
+	if err := rootCmd.Execute(); err != nil {
+		log.Fatal(err)
+	}
+}
+
+func initFuncs(cmd *cobra.Command, args []string) {
+	logInit()
+
+	// TODO: add metrics
+	/*
+		if viper.GetBool("metrics") {
+			prom.Init()
+		}
+
+		if viper.GetBool("prom.http") {
+			addr := fmt.Sprintf(
+				"%s:%s",
+				viper.GetString("prom.http.addr"),
+				viper.GetString("prom.http.port"),
+			)
+			prom.Serve(addr)
+		}
+	*/
 }
 
 func init() {
 	cobra.OnInitialize(initConfig)
-
-	// Here you will define your flags and configuration settings.
-	// Cobra supports persistent flags, which, if defined here,
-	// will be global for your application.
+	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
+	viper.AutomaticEnv()
 
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.lotus-utils.yaml)")
+	rootCmd.PersistentFlags().StringVar(&envFile, "env", "", "environment file location")
 
-	// Cobra also supports local flags, which will only run
-	// when this action is called directly.
-	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	rootCmd.PersistentFlags().String("log-level", log.InfoLevel.String(), "log level (trace, debug, info, warn, error, fatal, panic)")
+	rootCmd.PersistentFlags().String("log-file", "", "file path for logging")
+
+	viper.BindPFlag(attestation.LOG_LEVEL_TOML, rootCmd.PersistentFlags().Lookup("log-level"))
+	viper.BindPFlag(attestation.LOG_FILE_TOML, rootCmd.PersistentFlags().Lookup("log-file"))
+
+	// TODO: add metrics
+	/*
+		rootCmd.PersistentFlags().Bool("metrics", false, "enable metrics")
+
+		rootCmd.PersistentFlags().Bool("prom-http", false, "enable http service for prometheus")
+		rootCmd.PersistentFlags().String("prom-http-addr", "127.0.0.1", "http host for prometheus")
+		rootCmd.PersistentFlags().String("prom-http-port", "8090", "http port for prometheus")
+
+		viper.BindPFlag("metrics", rootCmd.PersistentFlags().Lookup("metrics"))
+
+		viper.BindPFlag("prom.http", rootCmd.PersistentFlags().Lookup("prom-http"))
+		viper.BindPFlag("prom.http.addr", rootCmd.PersistentFlags().Lookup("prom-http-addr"))
+		viper.BindPFlag("prom.http.port", rootCmd.PersistentFlags().Lookup("prom-http-port"))
+	*/
 }
 
 // initConfig reads in config file and ENV variables if set.
@@ -87,4 +122,63 @@ func initConfig() {
 	if err := viper.ReadInConfig(); err == nil {
 		fmt.Fprintln(os.Stderr, "Using config file:", viper.ConfigFileUsed())
 	}
+}
+
+func logInit() error {
+	// Set the output.
+	viper.BindEnv(attestation.LOG_FILE_TOML, attestation.LOG_FILE)
+	logFile := viper.GetString("log.file")
+	if logFile != "" {
+		file, err := os.OpenFile(logFile,
+			os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0640)
+		if err == nil {
+			log.Infof("Directing output to %s", logFile)
+			log.SetOutput(file)
+		} else {
+			log.SetOutput(os.Stdout)
+			log.Info("Failed to logrus.to file, using default stdout")
+		}
+	} else {
+		log.SetOutput(os.Stdout)
+	}
+
+	// Set the level.
+	viper.BindEnv(attestation.LOG_LEVEL_TOML, attestation.LOG_LEVEL)
+	lvl, err := log.ParseLevel(viper.GetString("log.level"))
+	if err != nil {
+		return err
+	}
+	log.SetLevel(lvl)
+
+	formatter := &log.TextFormatter{
+		FullTimestamp: true,
+	}
+	// Show file/line number only at Trace level.
+	if lvl >= log.TraceLevel {
+		log.SetReportCaller(true)
+
+		// We need to exclude this wrapper code, logrus.us itself, and the runtime from the stack to show anything useful.
+		// cf. https://github.com/sirupsen/logrus.us/pull/973
+		formatter.CallerPrettyfier = func(frame *runtime.Frame) (function string, file string) {
+			pcs := make([]uintptr, 50)
+			_ = runtime.Callers(0, pcs)
+			frames := runtime.CallersFrames(pcs)
+
+			// Filter logrus.wrapper / logrus.us / runtime frames.
+			for next, again := frames.Next(); again; next, again = frames.Next() {
+				if !strings.Contains(next.File, "sirupsen/logrus.us") &&
+					!strings.HasPrefix(next.Function, "runtime.") &&
+					!strings.Contains(next.File, "lotus-index-attestation/pkg/log") {
+					return next.Function, fmt.Sprintf("%s:%d", next.File, next.Line)
+				}
+			}
+
+			// Fallback to the raw info.
+			return frame.Function, fmt.Sprintf("%s:%d", frame.File, frame.Line)
+		}
+	}
+
+	log.SetFormatter(formatter)
+	log.Info("Log level set to ", lvl.String())
+	return nil
 }
