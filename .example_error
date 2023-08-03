@@ -1,0 +1,51 @@
+2023-07-01T04:47:39.635Z        WARN    chain   chain/sync.go:218       InformNewHead called on block marked as bad: bafy2bzaceblpxuvibzza6uzy3fckfds73dz5w5i36ywfcxrfoeija7i7crmjq (reason: linked to bafy2bzaced4zz3uqzglinlxk42wi2gomqri74a4n2662riavy2vl23yt25lgq caused by: [bafy2bzacebupfkdw6th3xn2y2q2hdvd3plosdc6cx5tcnfxbhvm2vxvwpmnde] 3 errors occurred:
+        * block had invalid messages:
+    github.com/filecoin-project/lotus/chain/consensus.CommonBlkChecks.func1
+        /home/srw/lotus/chain/consensus/common.go:83
+  - failed to compute tipsettate for {bafy2bzacebcbbwdzoq5nyhkj64p5xaqadd6uoblryfzu6xugiksg3baep4qxw,bafy2bzacecq6ukgzpqkxvhohlcfdk2p4rwcsakdkzw5n5ep7wswxesjufqnii,bafy2bzaced4urx6ntytopio6xrs3o3xjpzdf2bvsciew53xuau5jossqoz4hq}:
+    github.com/filecoin-project/lotus/chain/consensus.checkBlockMessages
+        /home/srw/lotus/chain/consensus/common.go:192
+  - getting block messages for tipset:
+    github.com/filecoin-project/lotus/chain/consensus.(*TipSetExecutor).ExecuteTipSet
+        /home/srw/lotus/chain/consensus/compute_state.go:352
+  - failed to get messages for block:
+    github.com/filecoin-project/lotus/chain/store.(*ChainStore).BlockMsgsForTipset
+        /home/srw/lotus/chain/store/messages.go:170
+  - loading bls messages for block:
+    github.com/filecoin-project/lotus/chain/store.(*ChainStore).MessagesForBlock
+        /home/srw/lotus/chain/store/messages.go:289
+  - failed to get message: (bafy2bzacealch3vsex3agbfrs4arf3hgctzd6dqpw3mlecbj5vb2p2vxcy7hy):43:
+    github.com/filecoin-project/lotus/chain/store.(*ChainStore).LoadMessagesFromCids
+        /home/srw/lotus/chain/store/messages.go:336
+  - EOF
+        * computing base fee:
+    github.com/filecoin-project/lotus/chain/consensus.CommonBlkChecks.func2
+        /home/srw/lotus/chain/consensus/common.go:91
+  - error getting messages for: bafy2bzacecq6ukgzpqkxvhohlcfdk2p4rwcsakdkzw5n5ep7wswxesjufqnii:
+    github.com/filecoin-project/lotus/chain/store.(*ChainStore).ComputeBaseFee
+        /home/srw/lotus/chain/store/basefee.go:65
+  - loading bls messages for block:
+    github.com/filecoin-project/lotus/chain/store.(*ChainStore).MessagesForBlock
+        /home/srw/lotus/chain/store/messages.go:289
+  - failed to get message: (bafy2bzacealch3vsex3agbfrs4arf3hgctzd6dqpw3mlecbj5vb2p2vxcy7hy):43:
+    github.com/filecoin-project/lotus/chain/store.(*ChainStore).LoadMessagesFromCids
+        /home/srw/lotus/chain/store/messages.go:336
+  - EOF
+        * get tipsetstate(2994693, [bafy2bzacebcbbwdzoq5nyhkj64p5xaqadd6uoblryfzu6xugiksg3baep4qxw bafy2bzacecq6ukgzpqkxvhohlcfdk2p4rwcsakdkzw5n5ep7wswxesjufqnii bafy2bzaced4urx6ntytopio6xrs3o3xjpzdf2bvsciew53xuau5jossqoz4hq]) failed:
+    github.com/filecoin-project/lotus/chain/consensus.CommonBlkChecks.func3
+        /home/srw/lotus/chain/consensus/common.go:103
+  - getting block messages for tipset:
+    github.com/filecoin-project/lotus/chain/consensus.(*TipSetExecutor).ExecuteTipSet
+        /home/srw/lotus/chain/consensus/compute_state.go:352
+  - failed to get messages for block:
+    github.com/filecoin-project/lotus/chain/store.(*ChainStore).BlockMsgsForTipset
+        /home/srw/lotus/chain/store/messages.go:170
+  - loading bls messages for block:
+    github.com/filecoin-project/lotus/chain/store.(*ChainStore).MessagesForBlock
+        /home/srw/lotus/chain/store/messages.go:289
+  - failed to get message: (bafy2bzacealch3vsex3agbfrs4arf3hgctzd6dqpw3mlecbj5vb2p2vxcy7hy):43:
+    github.com/filecoin-project/lotus/chain/store.(*ChainStore).LoadMessagesFromCids
+        /home/srw/lotus/chain/store/messages.go:336
+  - EOF
+
+)
