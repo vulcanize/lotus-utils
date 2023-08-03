@@ -17,10 +17,11 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/vulcanize/lotus-utils/pkg/attestation"
 	"os"
 	"runtime"
 	"strings"
+
+	"github.com/vulcanize/lotus-utils/pkg/attestation"
 
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -39,7 +40,6 @@ var rootCmd = &cobra.Command{
 	Use:              "lotus-utils",
 	PersistentPreRun: initFuncs,
 }
-
 
 // Execute adds all child commands to the root command and sets flags appropriately.
 // This is called by main.main(). It only needs to happen once to the rootCmd.

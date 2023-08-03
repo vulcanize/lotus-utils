@@ -3,13 +3,14 @@ package cmd
 import (
 	"context"
 	"fmt"
-	"github.com/spf13/viper"
 	"net"
 	"net/http"
 	"net/rpc"
 	"os"
 	"os/signal"
 	"sync"
+
+	"github.com/spf13/viper"
 
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"

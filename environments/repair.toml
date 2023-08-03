@@ -1,0 +1,6 @@
+[repair]
+    local_blockstore_path = "./.blockstore"
+    gateway_api_url = ""
+    auth_token_path = ""
+    error_file_path = ".error"
+    missing_cids = ["bafy2bzacealch3vsex3agbfrs4arf3hgctzd6dqpw3mlecbj5vb2p2vxcy7hy"]

@@ -23,7 +23,19 @@ func ParseMissingCIDs(src io.ReadCloser) ([]cid.Cid, error) {
 		}
 		missingCIDs = append(missingCIDs, cids...)
 	}
-	return missingCIDs, nil
+	return dedupeCIDs(missingCIDs), nil
+}
+
+func dedupeCIDs(cids []cid.Cid) []cid.Cid {
+	cidMap := make(map[cid.Cid]struct{})
+	for _, c := range cids {
+		cidMap[c] = struct{}{}
+	}
+	returnCIDs := make([]cid.Cid, 0, len(cidMap))
+	for c := range cidMap {
+		returnCIDs = append(returnCIDs, c)
+	}
+	return returnCIDs
 }
 
 func parseLine(line string) ([]cid.Cid, error) {
